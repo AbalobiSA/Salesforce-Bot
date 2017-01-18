@@ -1,8 +1,4 @@
-import os
-import sys
 import time as sleeper
-
-import xml.etree.ElementTree
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -29,17 +25,21 @@ def get_driver(incognito=False):
     :return: A webdriver instance
     """
     
-    if incognito:
-        print "Initializing incognito webdriver"
-        
-        firefox_profile = webdriver.FirefoxProfile()
-        firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+    # Disabled this since it keeps opening new windows at a specific point
+    # Rather have tabs open that entire new windows
+    # And in any way, when closing a driver instance entire cache and history is wiped. New one is always fresh
+    # if incognito:
+    #     print "Initializing incognito webdriver"
+    #
+    #     firefox_profile = webdriver.FirefoxProfile()
+    #     firefox_profile.set_preference("browser.privatebrowsing.autostart", True)
+    #
+    #     driver = webdriver.Firefox(firefox_profile=firefox_profile)
+    # else:
     
-        driver = webdriver.Firefox(firefox_profile=firefox_profile)
-    else:
-        print "Initializing the webdriver"
-    
-        driver = webdriver.Firefox()
+    print "Initializing the webdriver"
+
+    driver = webdriver.Firefox()
     
     return driver
 
@@ -86,8 +86,13 @@ def login(driver, username, password):
     sleeper.sleep(7.5)
     
     # Check that the login worked
-    error = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.ID, "error")))
-    if "still can't log in" in error.text:
+    error = None
+    try:
+        error = WebDriverWait(driver, 10.0).until(ec.presence_of_element_located((By.ID, "error")))
+    except:
+        return
+    
+    if error is not None and "still can't log in" in error.text:
         raise Exception("Could not log in for some reason")
     
 
@@ -205,9 +210,11 @@ def main():
         try:
             driver = get_driver(incognito=True)
             do_first_login(driver, parsed_accounts[i][0], parsed_accounts[i][1], _tmp_password, parsed_accounts[i][2], url)
+            driver = None
 
             driver = get_driver(incognito=True)
             do_second_login(driver, parsed_accounts[i][0], parsed_accounts[i][1], url)
+            driver = None
         except Exception as e:
             fails[parsed_accounts[i][0]] = [[parsed_accounts[i][0], '*' * len(parsed_accounts[i][1]), parsed_accounts[i][2], e.message]]
             
@@ -299,15 +306,19 @@ def do_first_login(driver, username, new_password, current_password, community, 
     answer_field = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.ID, "answer")))
     answer_field.send_keys(community)
     
-    sleeper.sleep(0.75)
+    sleeper.sleep(1.25)
     
     print 'Pressing the button...'
     
     # Press the button
     button = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.ID, "password-button")))
     button.click()
+    
+    # close_popup(driver)
 
-    sleeper.sleep(20.0)
+    sleeper.sleep(12.5)
+    
+    print 'Waiting time over... Closing browser'
 
     close_driver(driver)
     
@@ -320,17 +331,20 @@ def close_popup(driver):
     """
     
     try:
+        print 'Checking the checkbox...'
+        
         # Click the checkbox
         checkbox = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.ID, "14:13;a")))
         checkbox.click()
         
+        print 'Pressing the X button on the popup...'
         # Press the 'X' on the popup
         WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.CLASS_NAME, "icon-fallback-text forceIcon")))
         xs = driver.find_elements_by_class_name("icon-fallback-text forceIcon")
         
         print len(xs)
         
-        xs[1].click()
+        # xs[1].click()
     except Exception as e:
         if PRINT_EXCEPTIONS:
             print e
@@ -352,13 +366,15 @@ def do_second_login(driver, username, password, url):
 
     login(driver, username, password)
 
-    sleeper.sleep(1.0)
+    sleeper.sleep(5.0)
     
     # Press the don't register text
     text = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.LINK_TEXT, "I Don't Want to Register My Phone")))
     driver.execute_script("arguments[0].click();", text)
-    
-    sleeper.sleep(20.0)
+
+    sleeper.sleep(12.5)
+
+    print 'Waiting time over... Closing browser'
     
     close_driver(driver)
 
@@ -378,60 +394,87 @@ def parse_xml():
     Parse the accounts.xml file
     :return: A list of structure [[uesrname1, password1, community1], [username2, password2, community2]]
     """
+
+    import os
+    import sys
+
+    import xml.etree.ElementTree
     
     if not os.path.exists(sys.path[0] + '/accounts.xml'):
         print 'The accounts.xml file does not exists. Exiting'
         exit()
     
-    print "Parsing the accounts.xml..."
+    try:
+        print "Parsing the accounts.xml file..."
     
-    # Dictionary containing the username to password mappings
-    parsed_accounts = []
+        # List containing the username, password and community
+        parsed_accounts = []
     
-    e = xml.etree.ElementTree.parse(sys.path[0] + '/accounts.xml').getroot()
+        e = xml.etree.ElementTree.parse(sys.path[0] + '/accounts.xml').getroot()
     
-    accounts = e.findall('account')
-    for account in accounts:
-        username = str(account.get('username'))
-        password = str(account.get('password'))
-        community = str(account.get('community'))
+        accounts = e.findall('account')
+        for account in accounts:
+            username = str(account.get('username'))
+            password = str(account.get('password'))
+            community = str(account.get('community'))
         
-        parsed_accounts.append([username, password, community])
+            parsed_accounts.append([username, password, community])
     
-    return parsed_accounts
+        return parsed_accounts
+    except Exception as e:
+        print 'Something went wrong with parsing XML file. Exiting'
+        raise e
     
 
-def csv_test():
+def parse_csv():
+    """
+    Parse the CSV file
+    :return: A list of structure [[username1, password1, community1], [username2, password2, community2]]
+    """
     
+    import os
+    import sys
     import csv
     
-    with open('test.csv', 'r') as f:
-        reader = csv.reader(f)
+    if not os.path.exists(sys.path[0] + '/test.csv'):
+        print 'The test.csv file does not exists. Exiting'
+        exit()
+    
+    try:
+        print "Parsing the text.csv file..."
+
+        # List containing the username, password and community
+        parsed_accounts = []
 
         heading = True
-        
+
         username_index = -1
         password_index = -1
         community_index = -1
-        
-        mappings = []
-        
-        for row in reader:
-            print row
-            
-            if heading:
-                heading = False
-                
-                username_index = row.index("Username")
-                password_index = row.index("Password")
-                community_index = row.index("Community")
-            else:
-                mappings.append([row[username_index], row[password_index], row[community_index]])
-                # mappings.append([row[username_index]])
 
-        print mappings
+        with open('test.csv', 'r') as f:
+            reader = csv.reader(f)
         
+            for row in reader:
+                print row
+            
+                if heading:
+                    heading = False
+                
+                    username_index = row.index("Username")
+                    password_index = row.index("Password")
+                    community_index = row.index("Community")
+                else:
+                    parsed_accounts.append([row[username_index], row[password_index], row[community_index]])
+                    # mappings.append([row[username_index]])
+                
+                    # print mappings
+    
+        return parsed_accounts
+    except Exception as e:
+        print 'Something went wrong with parsing CSV file. Exiting'
+        raise e
 
 if __name__ == '__main__':
     main()
-    # csv_test()
+    # parse_csv()
