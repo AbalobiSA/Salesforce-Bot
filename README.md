@@ -3,7 +3,7 @@
 **<u>About</u>**
 
 A python script that automatically changes the passwords of users on the Salesforce site.<br>
-The passwords for each user is set in the <b>accounts.xml</b> file.
+The usernames, passwords and communities for each user is set in the <b>accounts.xml</b> file.
 
 **<u>Requirements</u>**
 
