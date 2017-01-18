@@ -17,6 +17,90 @@ PRINT_EXCEPTIONS = True
 # The time to wait before the webdriver decides that the element does not exist
 WAIT_TIME = 40.0
 
+########################################
+#       ----- UNUSED CODE ------       #
+# USED TO ACCESS SALESFORCE TABLE DATA #
+########################################
+
+
+def get_number_of_rows(driver):
+    """
+    Get the number of row in the table ie. the number of accounts
+    :param driver:  The webdriver instance
+    :return: The number of rows
+    """
+    
+    sleeper.sleep(0.5)
+    
+    print 'Finding the number of accounts on page...'
+
+    xpath = '//*[@class="listBody"]/div[4]/div/div/div/div[1]/div[2]/div/*'
+    WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath)))
+    num_rows = len(driver.find_elements_by_xpath(xpath))
+    
+    print '%d accounts were found on page' % num_rows
+    
+    return num_rows
+
+
+def get_row_username(driver, row):
+    """
+    Get the username in row 'row'
+    :param driver:  The webdriver instance
+    :param row: The row number to check
+    :return: The username of the row
+    """
+    
+    print 'Getting row %d status...' % row
+    xpath = '//*[@class="listBody"]/div[4]/div/div/div/div[1]/div[2]/div/div[%d]/table/tbody/tr/td[12]/div' % row
+    username = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath))).text
+    
+    print 'The username found is: %s' % username
+    
+    return username
+    
+    
+def click_on_row_link(driver, row):
+    """
+    Clicks on the link that opens the details user info screen
+    :param driver: The webdriver instance
+    :param row: The row to click in
+    :return: None
+    """
+
+    print 'Pressing row %d link...' % row
+    xpath = '//*[@class="listBody"]/div[4]/div/div/div/div[1]/div[2]/div/div[%d]/table/tbody/tr/td[5]/div/a' % row
+    link = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath)))
+    
+    sleeper.sleep(0.5)
+
+    link.click()
+    
+
+def get_assigned_details(driver):
+    """
+    Gets the username and password of the user
+    :param driver: The webdriver instance
+    :return: The username and password
+    """
+
+    print 'Getting username...'
+
+    xpath = '//*[@id="ep"]/div[2]/div[4]/table/tbody/tr[1]/td[4]/div'
+    username = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath))).text
+    
+    xpath = '//*[@id="ep"]/div[2]/div[6]/table/tbody/tr[5]/td[4]/div'
+    password = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath))).text
+    
+    print 'Username found: %s' % username
+    print 'Password found: %s' % ('*' * len(password))
+    
+    return username, password
+
+########################
+# ------- START ------ #
+########################
+
 
 def get_driver(incognito=False):
     """
@@ -56,6 +140,18 @@ def close_driver(driver):
     driver.quit()
     
     
+def go_back(driver):
+    """
+    Goes back one page
+    :param driver: The webdriver instance
+    :return: None
+    """
+
+    sleeper.sleep(0.5)
+
+    driver.execute_script("window.history.go(-1)")
+
+
 def login(driver, username, password):
     """
     Logs you in
@@ -94,150 +190,7 @@ def login(driver, username, password):
     
     if error is not None and "still can't log in" in error.text:
         raise Exception("Could not log in for some reason")
-    
 
-def get_number_of_rows(driver):
-    """
-    Get the number of row in the table ie. the number of accounts
-    :param driver:  The webdriver instance
-    :return: The number of rows
-    """
-    
-    sleeper.sleep(0.5)
-    
-    print 'Finding the number of accounts on page...'
-
-    xpath = '//*[@class="listBody"]/div[4]/div/div/div/div[1]/div[2]/div/*'
-    WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath)))
-    num_rows = len(driver.find_elements_by_xpath(xpath))
-    
-    print '%d accounts were found on page' % num_rows
-    
-    return num_rows
-
-
-def get_row_username(driver, row):
-    """
-    Get the username in row 'row'
-    :param driver:  The webdriver instance
-    :param row: The row number to check
-    :return: The username of the row
-    """
-    
-    print 'Getting row %d status...' % row
-    xpath = '//*[@class="listBody"]/div[4]/div/div/div/div[1]/div[2]/div/div[%d]/table/tbody/tr/td[12]/div' % row
-    username = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath))).text
-    
-    print 'The username found is: %s' % username
-    
-    return username
-
-
-def click_on_row_link(driver, row):
-    """
-    Clicks on the link that opens the details user info screen
-    :param driver: The webdriver instance
-    :param row: The row to click in
-    :return: None
-    """
-
-    print 'Pressing row %d link...' % row
-    xpath = '//*[@class="listBody"]/div[4]/div/div/div/div[1]/div[2]/div/div[%d]/table/tbody/tr/td[5]/div/a' % row
-    link = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath)))
-    
-    sleeper.sleep(0.5)
-
-    link.click()
-    
-    
-def get_assigned_details(driver):
-    """
-    Gets the username and password of the user
-    :param driver: The webdriver instance
-    :return: The username and password
-    """
-
-    print 'Getting username...'
-
-    xpath = '//*[@id="ep"]/div[2]/div[4]/table/tbody/tr[1]/td[4]/div'
-    username = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath))).text
-    
-    xpath = '//*[@id="ep"]/div[2]/div[6]/table/tbody/tr[5]/td[4]/div'
-    password = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.XPATH, xpath))).text
-    
-    print 'Username found: %s' % username
-    print 'Password found: %s' % ('*' * len(password))
-    
-    return username, password
-
-
-def go_back(driver):
-    """
-    Goes back one page
-    :param driver: The webdriver instance
-    :return: None
-    """
-
-    sleeper.sleep(0.5)
-
-    driver.execute_script("window.history.go(-1)")
-
-
-def main():
-    """
-    Main method
-    :return: None
-    """
-    
-    fails = {}
-
-    if ASK_CREDENTIALS:
-        print 'No secrets.py file found, asking credentials:'
-        _tmp_password = ask_credentials()
-    else:
-        _tmp_password = secrets.TMP_PASSWORD
-    
-    url = "https://eu5.salesforce.com/a0l?fcf=00B24000004ysrt"
-    
-    parsed_accounts = parse_xml()
-    num_accounts = len(parsed_accounts)
-
-    for i in xrange(0, num_accounts):
-        print 'Working with user: %s' % parsed_accounts[i][0]
-        
-        driver = None
-        
-        try:
-            driver = get_driver(incognito=True)
-            do_first_login(driver, parsed_accounts[i][0], parsed_accounts[i][1], _tmp_password, parsed_accounts[i][2], url)
-            driver = None
-
-            driver = get_driver(incognito=True)
-            do_second_login(driver, parsed_accounts[i][0], parsed_accounts[i][1], url)
-            driver = None
-        except Exception as e:
-            fails[parsed_accounts[i][0]] = [[parsed_accounts[i][0], '*' * len(parsed_accounts[i][1]), parsed_accounts[i][2], e.message]]
-            
-            if PRINT_EXCEPTIONS:
-                print e
-            else:
-                print 'Something went wrong during execution... Moving on to next account'
-
-        if driver is not None:
-            try:
-                close_driver(driver)
-            except Exception as ex:
-                if PRINT_EXCEPTIONS:
-                    print ex
-                else:
-                    print 'Something went wrong with closing browser... Moving on to next account'
-
-    if len(fails) > 0:
-        print_fails(fails)
-
-    print '=========='
-    print 'Bye Bye :)'
-    
 
 def print_fails(fails):
     """
@@ -255,7 +208,7 @@ def print_fails(fails):
     print 'The following accounts failed for some reason'
     pprint(fails)
     
-    
+
 def do_first_login(driver, username, new_password, current_password, community, url):
     """
     The first login for the newly created user. This uses the tmp_password. This sets the user's password to the one they
@@ -323,6 +276,33 @@ def do_first_login(driver, username, new_password, current_password, community, 
     close_driver(driver)
     
     
+def do_second_login(driver, username, password, url):
+    """
+    The second login for the newly created user. This sets so that the cellphone something:
+    :param driver:
+    :param username: The username to login with
+    :param password: The password to login with
+    :param url: The URL to the login page
+    :return: None
+    """
+
+    driver.get(url)
+
+    login(driver, username, password)
+
+    sleeper.sleep(5.0)
+    
+    # Press the don't register text
+    text = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.LINK_TEXT, "I Don't Want to Register My Phone")))
+    driver.execute_script("arguments[0].click();", text)
+
+    sleeper.sleep(12.5)
+
+    print 'Waiting time over... Closing browser'
+    
+    close_driver(driver)
+    
+    
 def close_popup(driver):
     """
     
@@ -352,33 +332,6 @@ def close_popup(driver):
             print 'Something went wrong with closing the popup...'
     
     
-def do_second_login(driver, username, password, url):
-    """
-    The second login for the newly created user. This sets so that the cellphone something:
-    :param driver:
-    :param username: The username to login with
-    :param password: The password to login with
-    :param url: The URL to the login page
-    :return: None
-    """
-
-    driver.get(url)
-
-    login(driver, username, password)
-
-    sleeper.sleep(5.0)
-    
-    # Press the don't register text
-    text = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.LINK_TEXT, "I Don't Want to Register My Phone")))
-    driver.execute_script("arguments[0].click();", text)
-
-    sleeper.sleep(12.5)
-
-    print 'Waiting time over... Closing browser'
-    
-    close_driver(driver)
-
-
 def ask_credentials():
     """
     Ask the user for the temp password
@@ -387,6 +340,63 @@ def ask_credentials():
     tmp_password = raw_input('Please enter the temp password: ')
     
     return tmp_password
+
+
+def main():
+    """
+    Main method
+    :return: None
+    """
+    
+    fails = {}
+
+    if ASK_CREDENTIALS:
+        print 'No secrets.py file found, asking credentials:'
+        _tmp_password = ask_credentials()
+    else:
+        _tmp_password = secrets.TMP_PASSWORD
+    
+    url = "https://eu5.salesforce.com/a0l?fcf=00B24000004ysrt"
+    
+    parsed_accounts = parse_xml()
+    # parsed_accounts = parse_csv()
+    num_accounts = len(parsed_accounts)
+
+    for i in xrange(0, num_accounts):
+        print 'Working with user: %s' % parsed_accounts[i][0]
+        
+        driver = None
+        
+        try:
+            driver = get_driver(incognito=True)
+            do_first_login(driver, parsed_accounts[i][0], parsed_accounts[i][1], _tmp_password, parsed_accounts[i][2], url)
+            driver = None
+
+            driver = get_driver(incognito=True)
+            do_second_login(driver, parsed_accounts[i][0], parsed_accounts[i][1], url)
+            driver = None
+        except Exception as e:
+            fails[parsed_accounts[i][0]] = [[parsed_accounts[i][0], '*' * len(parsed_accounts[i][1]), parsed_accounts[i][2], e.message]]
+            
+            if PRINT_EXCEPTIONS:
+                print e
+            else:
+                print 'Something went wrong during execution... Moving on to next account'
+
+        if driver is not None:
+            try:
+                close_driver(driver)
+            except Exception as ex:
+                if PRINT_EXCEPTIONS:
+                    print ex
+                else:
+                    print 'Something went wrong with closing browser... Moving on to next account'
+
+    if len(fails) > 0:
+        print_fails(fails)
+
+    print '=========='
+    print 'Bye Bye :)'
 
 
 def parse_xml():
@@ -456,7 +466,7 @@ def parse_csv():
             reader = csv.reader(f)
         
             for row in reader:
-                print row
+                # print row
             
                 if heading:
                     heading = False
@@ -468,7 +478,7 @@ def parse_csv():
                     parsed_accounts.append([row[username_index], row[password_index], row[community_index]])
                     # mappings.append([row[username_index]])
                 
-                    # print mappings
+            # print parsed_accounts
     
         return parsed_accounts
     except Exception as e:
