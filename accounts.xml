@@ -1,0 +1,4 @@
+<accounts>
+    <account username="username1" password="password1" community="Home1" />
+    <account username="username2" password="password2" community="Home2" />
+</accounts>
