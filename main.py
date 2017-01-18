@@ -401,5 +401,37 @@ def parse_xml():
     return parsed_accounts
     
 
+def csv_test():
+    
+    import csv
+    
+    with open('test.csv', 'r') as f:
+        reader = csv.reader(f)
+
+        heading = True
+        
+        username_index = -1
+        password_index = -1
+        community_index = -1
+        
+        mappings = []
+        
+        for row in reader:
+            print row
+            
+            if heading:
+                heading = False
+                
+                username_index = row.index("Username")
+                password_index = row.index("Password")
+                community_index = row.index("Community")
+            else:
+                mappings.append([row[username_index], row[password_index], row[community_index]])
+                # mappings.append([row[username_index]])
+
+        print mappings
+        
+
 if __name__ == '__main__':
     main()
+    # csv_test()
