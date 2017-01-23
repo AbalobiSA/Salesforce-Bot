@@ -358,8 +358,8 @@ def main():
     
     url = "https://eu5.salesforce.com/a0l?fcf=00B24000004ysrt"
     
-    parsed_accounts = parse_xml()
-    # parsed_accounts = parse_csv()
+    # parsed_accounts = parse_xml()
+    parsed_accounts = parse_csv()
     num_accounts = len(parsed_accounts)
 
     for i in xrange(0, num_accounts):
