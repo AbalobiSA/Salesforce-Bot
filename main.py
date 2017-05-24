@@ -120,9 +120,9 @@ def get_driver(incognito=False):
     #
     #     driver = webdriver.Firefox(firefox_profile=firefox_profile)
     # else:
-    
-    print "Initializing the webdriver"
 
+    print "Initializing the webdriver"
+    
     driver = webdriver.Firefox()
     
     return driver
@@ -161,10 +161,8 @@ def login(driver, username, password):
     :return: None
     """
     
-    sleeper.sleep(0.5)
-    
     # Enter the login username
-    username_field = WebDriverWait(driver, WAIT_TIME).until(ec.presence_of_element_located((By.ID, "username")))
+    username_field = WebDriverWait(driver, WAIT_TIME).until(ec.visibility_of_element_located((By.ID, "username")))
     username_field.send_keys(username)
     
     sleeper.sleep(0.5)
